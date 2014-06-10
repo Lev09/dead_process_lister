@@ -1,0 +1,9 @@
+{
+	"name": "deadProcessLister",
+	"description": "list dead processes",
+	"version": "0.0.1",
+	"private": true,
+	"dependencies": {
+		"underscore": "*"
+	}
+}
