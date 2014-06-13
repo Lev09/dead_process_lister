@@ -10,23 +10,21 @@ var aliveProcessSubscriber = zmq.socket('sub');
 
 var findDeadProcess = function (monitoredProcesses, aliveProcesses) {
 	if(monitoredProcesses != null && aliveProcesses != null) {
-		console.log("Dead proccesses: \n", deadApps);
 		deadApps = [];
-		
-		_.each(monitoredProcesses, function(app) {
-							
+	
+		_.each(monitoredProcesses, function(app) {		
 			var result = {
 				id: app.id,
-				pids: app.pids
+				pids: []
 			};
 			deadApps.push(result);
-			
-			_.each(result.pids, function(pid) {
-				if (_.contains(aliveProcesses, pid)) {
-					result.pids = _.without(app.pids, pid);
+		
+			_.each(app.pids, function(pid) {
+				if (!_.contains(aliveProcesses, pid)) {
+					result.pids.push(pid);
 				}
 			});
-			
+		
 		});
 	}
 	else {
@@ -36,18 +34,26 @@ var findDeadProcess = function (monitoredProcesses, aliveProcesses) {
 
 monitoredProcessSubscriber.on('message', function(msg) {
 	monitoredProcesses = JSON.parse(msg.toString());
-	findDeadProcess(monitoredProcesses, aliveProcesses);
-	//console.log('Monitored Processes \n', monitoredProcesses);
+	if(monitoredProcesses.length != 0) {
+		findDeadProcess(monitoredProcesses, aliveProcesses);
+	}
+	else {	
+		console.log('monitored process array is empty');
+	}
 });
 
-monitoredProcessSubscriber.connect('tcp://localhost:5557');
+monitoredProcessSubscriber.connect('tcp://localhost:5555');
 monitoredProcessSubscriber.subscribe('');
 
 aliveProcessSubscriber.on('message', function(msg) {
 	aliveProcesses = JSON.parse(msg.toString());
-	findDeadProcess(monitoredProcesses, aliveProcesses);
-	//console.log('alive Process ' + aliveProcesses);
+	if(aliveProcesses.length != 0) {
+		findDeadProcess(monitoredProcesses, aliveProcesses);
+	}
+	else {	
+		console.log('Alive process array is empty');
+	}
 });
 
-aliveProcessSubscriber.connect('tcp://localhost:5558');
+aliveProcessSubscriber.connect('tcp://localhost:5556');
 aliveProcessSubscriber.subscribe('');
