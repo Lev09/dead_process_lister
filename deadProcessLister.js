@@ -1,27 +1,53 @@
+var zmq = require('zmq');
 var _ = require('underscore');
 
-var apps = [
-	{id: "1a", pids: ["1523","4722","566"]},
-	{id: "23c", pids: ["1623","4822","536"]},
-	{id: "1g", pids: ["1233","4229","526"]},
-	{id: "5a", pids: ["1243","42","516"]}
-];
+var deadApps = [];
+var monitoredProcesses = null;
+var aliveProcesses = null;
+var monitoredProcessSubscriber = zmq.socket('sub');
+var aliveProcessSubscriber = zmq.socket('sub');
 
-var aliveProcesses = ["1523", "4722", "566", "536", "4229", "1243"];
-console.log(aliveProcesses);
 
-findDeadProcess = function (apps, aliveProcesses) {
-	_.each(apps, function(app) {
-		_.each(app.pids, function(pid) {
-			if (_.contains(aliveProcesses, pid)) {
-				app.pids = _.without(app.pids, pid);
-			}
+var findDeadProcess = function (monitoredProcesses, aliveProcesses) {
+	if(monitoredProcesses != null && aliveProcesses != null) {
+		console.log("Dead proccesses: \n", deadApps);
+		deadApps = [];
+		
+		_.each(monitoredProcesses, function(app) {
+							
+			var result = {
+				id: app.id,
+				pids: app.pids
+			};
+			deadApps.push(result);
+			
+			_.each(result.pids, function(pid) {
+				if (_.contains(aliveProcesses, pid)) {
+					result.pids = _.without(app.pids, pid);
+				}
+			});
+			
 		});
-	});
+	}
+	else {
+		console.log("WARNING: inported only one array for comparing");
+	}
 };
 
-findDeadProcess(apps, aliveProcesses);
+monitoredProcessSubscriber.on('message', function(msg) {
+	monitoredProcesses = JSON.parse(msg.toString());
+	findDeadProcess(monitoredProcesses, aliveProcesses);
+	//console.log('Monitored Processes \n', monitoredProcesses);
+});
 
-setTimeout(function() {
-	console.log(apps);
-}, 5000);
+monitoredProcessSubscriber.connect('tcp://localhost:5557');
+monitoredProcessSubscriber.subscribe('');
+
+aliveProcessSubscriber.on('message', function(msg) {
+	aliveProcesses = JSON.parse(msg.toString());
+	findDeadProcess(monitoredProcesses, aliveProcesses);
+	//console.log('alive Process ' + aliveProcesses);
+});
+
+aliveProcessSubscriber.connect('tcp://localhost:5558');
+aliveProcessSubscriber.subscribe('');
