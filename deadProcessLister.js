@@ -36,7 +36,7 @@ monitoredProcessSubscriber.on('message', function(msg) {
 	monitoredProcesses = JSON.parse(msg.toString());
 	if(monitoredProcesses.length != 0) {
 		if(deadApps.length !== 0) {
-			publisher.send(deadApps);
+			publisher.send(JSON.stringify(deadApps));
 		}
 		findDeadProcess(monitoredProcesses, aliveProcesses);
 	}
@@ -47,12 +47,13 @@ monitoredProcessSubscriber.on('message', function(msg) {
 
 monitoredProcessSubscriber.connect('tcp://localhost:5555');
 monitoredProcessSubscriber.subscribe('');
+console.log('Listening on port: 5555');
 
 aliveProcessSubscriber.on('message', function(msg) {
 	aliveProcesses = JSON.parse(msg.toString());
 	if(aliveProcesses.length != 0) {
 		if(deadApps.length !== 0) {
-			publisher.send(deadApps);
+			publisher.send(JSON.stringify(deadApps));
 		}
 		findDeadProcess(monitoredProcesses, aliveProcesses);
 	}
@@ -63,6 +64,7 @@ aliveProcessSubscriber.on('message', function(msg) {
 
 aliveProcessSubscriber.connect('tcp://localhost:5556');
 aliveProcessSubscriber.subscribe('');
+console.log('Listening on port: 5556');
 
 var publisher = zmq.socket('pub');
 publisher.bind('tcp://*:5557', function(error) {
