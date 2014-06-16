@@ -1,5 +1,11 @@
 var zmq = require('zmq');
 var _ = require('underscore');
+var argv = require('optimist')
+.default({
+	bind: 'tcp://*:5557',
+	connectMPLister: 'tcp://localhost:5555',
+	connectAPLister: 'tcp://localhost:5556'
+}).argv;
 
 var deadApps = [];
 var monitoredProcesses = null;
@@ -45,9 +51,9 @@ monitoredProcessSubscriber.on('message', function(msg) {
 	}
 });
 
-monitoredProcessSubscriber.connect('tcp://localhost:5555');
+monitoredProcessSubscriber.connect(argv.connectMPLister);
 monitoredProcessSubscriber.subscribe('');
-console.log('Listening on port: 5555');
+console.log('Listening on ' + argv.connectMPLister);
 
 aliveProcessSubscriber.on('message', function(msg) {
 	aliveProcesses = JSON.parse(msg.toString());
@@ -62,16 +68,16 @@ aliveProcessSubscriber.on('message', function(msg) {
 	}
 });
 
-aliveProcessSubscriber.connect('tcp://localhost:5556');
+aliveProcessSubscriber.connect(argv.connectAPLister);
 aliveProcessSubscriber.subscribe('');
-console.log('Listening on port: 5556');
+console.log('Listening on ' + argv.connectAPLister);
 
 var publisher = zmq.socket('pub');
-publisher.bind('tcp://*:5557', function(error) {
+publisher.bind(argv.bind, function(error) {
 	if(error) {
 		console.log(error);
 	}
 	else {
-		console.log('binding on port: 5557');
+		console.log('binding on ' + argv.bind);
 	}
 });

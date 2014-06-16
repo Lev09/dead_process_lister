@@ -5,6 +5,7 @@
 	"private": true,
 	"dependencies": {
 		"underscore": "*",
-		"zmq": "*"
+		"zmq": "*",
+		"optimist": "*"
 	}
 }
