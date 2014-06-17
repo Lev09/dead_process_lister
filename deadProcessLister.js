@@ -3,7 +3,7 @@ var _ = require('underscore');
 var argv = require('optimist')
 .default({
 	bind: 'tcp://*:5557',
-	connectMPLister: 'tcp://localhost:5555',
+	connectMPLister: 'tcp://localhost:8688',
 	connectAPLister: 'tcp://localhost:5556'
 }).argv;
 
